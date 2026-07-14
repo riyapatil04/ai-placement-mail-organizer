@@ -1,1 +1,2 @@
-# Backend Python dependencies will be added step by step.
+fastapi
+uvicorn

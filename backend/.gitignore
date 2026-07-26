@@ -24,4 +24,5 @@ venv/
 .DS_Store
 Thumbs.db
 
-client_secret_1031820065609-qa5bgd2mcfdurk7dmo3l4ck141figl3n.apps.googleusercontent.com.json
+credentials.json
+token.json

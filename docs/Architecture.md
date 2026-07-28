@@ -34,3 +34,18 @@
 - FastAPI is modern, high-performance, and designed specifically for building APIs with Python. [web:40][web:46]
 - It uses Python type hints to automatically generate validation and interactive documentation (OpenAPI/Swagger), which makes testing and debugging easier. [web:37][web:40][web:46]
 - Its async support and clean project structure patterns (with `app/main.py`, routers, schemas, services, etc.) make it a good fit for an AI-heavy, API-first backend. [web:37][web:39][web:41][web:44]
+
+## 8. Local AI with Ollama
+
+- The backend uses Ollama to run a local language model (e.g., Gemma 3 or Phi-3 Mini) on my laptop.
+- FastAPI never calls an external AI API; instead, it sends prompts to Ollama over `http://localhost:11434`.
+- This keeps data on my machine and avoids API keys or monthly AI costs.
+
+## 9. AI Processing Pipeline (High-Level)
+
+- Gmail → `gmail_service` → raw email.
+- `email_parser` → extract fields (sender, subject, body, dates, etc.).
+- SQLite → store emails and processed status.
+- `ai_service` → send only likely placement emails to Ollama and return structured JSON:
+  - company, role, deadline, eligibility, registration_link, summary.
+- FastAPI → uses the AI result to update the database and later drive the dashboard.

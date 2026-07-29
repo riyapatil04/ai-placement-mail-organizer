@@ -33,3 +33,16 @@ AI processing will only run for emails that pass duplicate checks and placement-
 - Dark theme by default, blue accent, clean cards.
 - Calls FastAPI for:
   - `GET /emails`, `GET /emails/{id}`, `GET /analysis/{id}`, `GET /calendar`, `POST /sync`.
+
+## React Component Design (V1)
+
+- Main page: `Dashboard`, which owns:
+  - `emails`
+  - `selectedEmail`
+  - `searchText`
+  - `filter`
+- `Dashboard` calls FastAPI (`GET /emails`) and passes data to:
+  - `EmailList` → `EmailCard`
+  - `EmailDetails`
+  - `Calendar`
+- Child components are pure UI that receive props and callbacks.

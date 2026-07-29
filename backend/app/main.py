@@ -1,17 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database.db import Base, engine
+from app.database.db import Base, engine, SessionLocal
 from app.models.email import Email  # noqa: F401
 from app.models.email_analysis import EmailAnalysis  # noqa: F401
-from app.services.gmail_service import fetch_one_email
+
+from app.services.gmail_service import fetch_new_emails_from_gmail
 from app.services.ai_service import analyze_email_with_ollama
+from app.services.sync_service import sync_emails_from_gmail
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-# CORS middleware: allow React (Vite) dev server
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -56,26 +58,57 @@ def ai_test():
     return {"ai_result": result}
 
 
-# NEW: Dummy /emails endpoint for React
 @app.get("/emails")
 def list_emails():
     """
-    Return a hard-coded list of emails (dummy data).
-    This will later be replaced with real emails from SQLite.
+    Return all saved emails from SQLite.
     """
-    return [
-        {
-            "id": 1,
-            "company": "Amazon",
-            "subject": "SDE Internship",
-            "sender": "placements@amazon.com",
-            "received_at": "2026-07-26T10:00:00",
-        },
-        {
-            "id": 2,
-            "company": "Microsoft",
-            "subject": "SDE Intern Hiring Drive",
-            "sender": "campus@microsoft.com",
-            "received_at": "2026-07-27T09:30:00",
-        },
-    ]
+    db = SessionLocal()
+    try:
+        emails = db.query(Email).order_by(Email.received_at.desc()).all()
+        return [
+            {
+                "id": e.id,
+                "gmail_message_id": e.gmail_message_id,
+                "thread_id": e.thread_id,
+                "sender": e.sender,
+                "subject": e.subject,
+                "received_at": e.received_at.isoformat() if e.received_at else None,
+            }
+            for e in emails
+        ]
+    finally:
+        db.close()
+
+
+@app.get("/emails/{email_id}")
+def get_email(email_id: int):
+    """
+    Return a single email with full body.
+    """
+    db = SessionLocal()
+    try:
+        email = db.query(Email).filter(Email.id == email_id).first()
+        if not email:
+            return {"detail": "Email not found"}, 404
+        return {
+            "id": email.id,
+            "gmail_message_id": email.gmail_message_id,
+            "thread_id": email.thread_id,
+            "sender": email.sender,
+            "subject": email.subject,
+            "body": email.body,
+            "received_at": email.received_at.isoformat() if email.received_at else None,
+        }
+    finally:
+        db.close()
+
+
+@app.post("/sync")
+def sync_emails():
+    """
+    Fetch new emails from Gmail and save to SQLite.
+    Returns a summary.
+    """
+    result = sync_emails_from_gmail(limit=20)
+    return result

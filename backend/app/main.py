@@ -2,7 +2,9 @@ from fastapi import FastAPI
 
 from app.database.db import Base, engine
 from app.models.email import Email  # noqa: F401
+from app.models.email_analysis import EmailAnalysis  # noqa: F401
 from app.services.gmail_service import fetch_one_email
+from app.services.ai_service import analyze_email_with_ollama
 
 Base.metadata.create_all(bind=engine)
 

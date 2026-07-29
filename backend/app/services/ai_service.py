@@ -1,3 +1,4 @@
+import os
 import requests
 from typing import Dict, Any
 import json
@@ -8,6 +9,45 @@ OLLAMA_MODEL = "gemma3"  # or "gemma3:1b" or "phi3"
 # Default Ollama local endpoint
 OLLAMA_URL = "http://localhost:11434/api/generate"
 
+def _load_prompt(filename: str) -> str:
+    base_dir = os.path.dirname(__file__)
+    prompts_dir = os.path.join(base_dir, "..", "prompts")
+    path = os.path.join(prompts_dir, filename)
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+def classify_email(email_text: str) -> dict:
+    """
+    Classify an email into a category using Ollama.
+    Returns something like: {"category": "placement"}
+    """
+    prompt_template = _load_prompt("classify_email.txt")
+    prompt = prompt_template.replace("{{EMAIL_TEXT}}", email_text)
+
+    payload = {
+        "model": OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False,
+    }
+
+    response = requests.post(OLLAMA_URL, json=payload)
+    response.raise_for_status()
+
+    data = response.json()
+    raw_text = data.get("response", "").strip()
+
+    import json
+    try:
+        parsed = json.loads(raw_text)
+    except json.JSONDecodeError:
+        # Fallback
+        parsed = {"category": "other"}
+
+    # Ensure key exists
+    if "category" not in parsed:
+        parsed["category"] = "other"
+
+    return parsed
 
 def analyze_email_with_ollama(email_text: str) -> Dict[str, Any]:
     """

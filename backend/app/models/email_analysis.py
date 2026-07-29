@@ -10,7 +10,7 @@ class EmailAnalysis(Base):
     id = Column(Integer, primary_key=True, index=True)
     email_id = Column(Integer, ForeignKey("emails.id"), unique=True, nullable=False)
 
-    category = Column(String, nullable=True)
+    category = Column(String, nullable=True)  # NEW
     company = Column(String, nullable=True)
     role = Column(String, nullable=True)
     deadline = Column(String, nullable=True)
@@ -20,5 +20,4 @@ class EmailAnalysis(Base):
 
     processed_at = Column(DateTime, nullable=True)
 
-    # Relationship back to Email (optional, will be set in Email model)
     email = relationship("Email", back_populates="analysis")

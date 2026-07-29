@@ -1,0 +1,37 @@
+You are an assistant that classifies emails into categories.
+
+Read the following email and assign ONE category from this list:
+- placement
+- college
+- shopping
+- finance
+- travel
+- personal
+- spam
+- other
+
+Classification rules:
+- If the email is about campus recruitment, internships, job drives, hiring tests, or placement notices from a college/company, ALWAYS use "placement".
+- If the email is about a college notice, exam, or academic activity but NOT about jobs/internships, use "college".
+- If the email is about buying/selling, orders, discounts, or e-commerce, use "shopping".
+- If the email is about banking, payments, invoices, or taxes, use "finance".
+- If the email is about flights, trains, hotels, or trips, use "travel".
+- If the email is clearly personal (friends, family, non-work chat), use "personal".
+- If the email is spam, promotions, or suspicious, use "spam".
+- If none of the above fit, use "other".
+
+Respond ONLY with a single JSON object with exactly one key: "category".
+The value must be one of: placement, college, shopping, finance, travel, personal, spam, other.
+Do NOT add any explanation or extra text.
+
+Example responses:
+{
+  "category": "placement"
+}
+or
+{
+  "category": "shopping"
+}
+
+Email:
+{{EMAIL_TEXT}}

@@ -6,7 +6,7 @@ from app.models.email import Email  # noqa: F401
 from app.models.email_analysis import EmailAnalysis  # noqa: F401
 
 from app.services.gmail_service import fetch_new_emails_from_gmail
-from app.services.ai_service import analyze_email_with_ollama
+from app.services.ai_service import analyze_email_with_ollama, classify_email
 from app.services.sync_service import sync_emails_from_gmail
 
 Base.metadata.create_all(bind=engine)
@@ -111,4 +111,21 @@ def sync_emails():
     Returns a summary.
     """
     result = sync_emails_from_gmail(limit=20)
+    return result
+
+@app.post("/classify")
+def classify_sample():
+    """
+    Test endpoint: classify a sample placement email.
+    """
+    sample = (
+        "Dear Student,\n\n"
+        "Amazon is conducting a campus placement drive for the role of SDE Intern. "
+        "Eligible branches: CSE, IT, ECE. Eligibility: CGPA >= 7.5. "
+        "Deadline to register: 15 August 2026. Please register at "
+        "https://placements.amazon.com/register.\n\n"
+        "Regards,\n"
+        "Training and Placement Cell"
+    )
+    result = classify_email(sample)
     return result

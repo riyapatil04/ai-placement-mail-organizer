@@ -49,3 +49,50 @@
 - `ai_service` → send only likely placement emails to Ollama and return structured JSON:
   - company, role, deadline, eligibility, registration_link, summary.
 - FastAPI → uses the AI result to update the database and later drive the dashboard.
+
+## 10. End-to-End Email Processing Pipeline (V1)
+
+A new email flows through the system as follows:
+
+1. **Scheduler**  
+   - Runs every ~10 minutes.  
+   - Triggers a check for new emails in Gmail.
+
+2. **Fetch New Emails**  
+   - `gmail_service` calls the Gmail API to get recent messages.  
+   - Only emails newer than the last sync are considered.
+
+3. **Duplicate Check**  
+   - For each email, check if `gmail_message_id` already exists in the `emails` table.  
+   - If it exists → skip this email.  
+   - If not → continue processing.
+
+4. **Save Raw Email**  
+   - Insert the raw email into the `emails` table:  
+     - `gmail_message_id`, `thread_id`, `sender`, `subject`, `body`, `received_at`, `is_processed`.
+
+5. **Classify Email**  
+   - Call `ai_service` with a short prompt to classify the email:  
+     - Categories: `placement`, `college`, `finance`, `shopping`, `travel`, `personal`, `spam`, `other`.
+
+6. **AI Extraction (only for placement emails)**  
+   - If `category == "placement"`:  
+     - Ask Ollama to extract:  
+       - `company`, `role`, `deadline`, `eligibility`, `registration_link`, `summary`.
+
+7. **Save Analysis**  
+   - Insert a row into `email_analysis` with:  
+     - `email_id` (FK to `emails.id`),  
+     - `category`, `company`, `role`, `deadline`, `eligibility`, `registration_link`, `summary`, `processed_at`.
+
+8. **Create Calendar Event (if deadline exists)**  
+   - If a valid deadline is found:  
+     - Use the Google Calendar API to create an event for the deadline.  
+   - If no deadline is found:  
+     - Skip this step.
+
+9. **Show on Dashboard**  
+   - React frontend calls FastAPI to:  
+     - List emails (with or without AI analysis).  
+     - Show eligibility, deadlines, and categories.  
+   - React never talks directly to Gmail or Ollama.

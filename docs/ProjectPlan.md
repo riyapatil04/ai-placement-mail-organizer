@@ -22,3 +22,14 @@ AI processing will only run for emails that pass duplicate checks and placement-
 - AI results are stored in a separate `email_analysis` table.
 - If a deadline is found, a Google Calendar event is created automatically.
 - The React dashboard displays emails, AI analysis, and calendar events.
+
+## Frontend (V1)
+
+- Single-page React app with:
+  - Sidebar (All Emails, Placement, Calendar, Settings).
+  - Email list + email details panel.
+  - Calendar view showing only extracted deadlines.
+  - Search and basic filters (All, Placement, Processed, Unprocessed).
+- Dark theme by default, blue accent, clean cards.
+- Calls FastAPI for:
+  - `GET /emails`, `GET /emails/{id}`, `GET /analysis/{id}`, `GET /calendar`, `POST /sync`.
